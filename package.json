@@ -1,0 +1,23 @@
+{
+  "name": "panorama-visualization",
+  "version": "1.0.0",
+  "description": "jq mbutil https://github.com/mapbox/mbutil",
+  "main": "ndjon-to-geojson.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Amsterdam/panorama-visualization.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Amsterdam/panorama-visualization/issues"
+  },
+  "homepage": "https://github.com/Amsterdam/panorama-visualization#readme",
+  "dependencies": {
+    "@turf/turf": "^5.1.6",
+    "highland": "^2.13.3"
+  }
+}
