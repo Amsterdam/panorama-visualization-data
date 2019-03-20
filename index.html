@@ -4,8 +4,8 @@
   <meta charset='utf-8' />
   <title>Panorama</title>
   <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.js'></script>
-  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.css' rel='stylesheet' />
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.css' rel='stylesheet' />
   <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
   <style>
   body {
@@ -130,11 +130,28 @@
       },
       paint: {
         'line-opacity': 0.6,
-        'line-color': 'rgb(53, 175, 109)',
+        'line-color': ['case',
+          ['==', ['get', 'surface'], 'water'], '#00a9ff',
+          '#26af00'
+        ],
         'line-width': {
           // 'base': 1,
           'stops': [[8, 0.4], [17, 3]]
         }
+      }
+    })
+
+
+    map.on('mousemove', function (e) {
+      var features = map.queryRenderedFeatures(e.point)
+      if (features[0]) {
+        var id = features[0].properties.id
+        var capturedAt = features[0].properties.capturedAt
+
+        var path = capturedAt.slice(0, 10).replace(new RegExp('-', 'g'), '/')
+
+        var url = 'http://localhost:8082/sequences/' + path + '/' + id + '.geojson'
+        console.log(url)
       }
     })
 
@@ -185,97 +202,97 @@
     })
   })
 
-  document.getElementById('sequence')
-    .addEventListener('input', function () {
-      var sequenceId = this.value
-      var sequenceIdFilter = ['==', 'sequenceId', parseInt(sequenceId)]
+  // document.getElementById('sequence')
+  //   .addEventListener('input', function () {
+  //     var sequenceId = this.value
+  //     var sequenceIdFilter = ['==', 'sequenceId', parseInt(sequenceId)]
 
-      map.setFilter('sequences', sequenceIdFilter)
+  //     map.setFilter('sequences', sequenceIdFilter)
 
-      feature = map.querySourceFeatures('sequences', {
-        sourceLayer: 'sequences',
-        filter: sequenceIdFilter
-      })[0]
+  //     feature = map.querySourceFeatures('sequences', {
+  //       sourceLayer: 'sequences',
+  //       filter: sequenceIdFilter
+  //     })[0]
 
-      var date = feature ? feature.properties.timestamp.slice(0, 10) : ''
+  //     var date = feature ? feature.properties.timestamp.slice(0, 10) : ''
 
-      document.getElementById('sequence-label').innerText = sequenceId
-      document.getElementById('sequence-date').innerText = date
+  //     document.getElementById('sequence-label').innerText = sequenceId
+  //     document.getElementById('sequence-date').innerText = date
 
-      if (feature) {
-        // startAnimation(feature)
-      }
-    })
+  //     if (feature) {
+  //       // startAnimation(feature)
+  //     }
+  //   })
 
-  document.getElementById('start-animation').addEventListener('click', function () {
-      console.log('vhip')
-      startAnimation(feature)
-    })
+  // document.getElementById('start-animation').addEventListener('click', function () {
+  //     console.log('vhip')
+  //     startAnimation(feature)
+  //   })
 
-  function startAnimation (feature) {
-    var steps = 1500
-    var counter = 0
+  // function startAnimation (feature) {
+  //   var steps = 1500
+  //   var counter = 0
 
-    var units = {units: 'meters'}
+  //   var units = {units: 'meters'}
 
-    function toLineString (coordinates) {
-      return {
-        type: 'LineString',
-        coordinates: coordinates
-      }
-    }
+  //   function toLineString (coordinates) {
+  //     return {
+  //       type: 'LineString',
+  //       coordinates: coordinates
+  //     }
+  //   }
 
-    var lineStrings = feature.geometry.coordinates
-      .filter(function (coordinates) {
-        return coordinates.length > 1
-      })
-      .map(toLineString)
+  //   var lineStrings = feature.geometry.coordinates
+  //     .filter(function (coordinates) {
+  //       return coordinates.length > 1
+  //     })
+  //     .map(toLineString)
 
-    // TODO: PAS sequences.js aan, alleen maar meer dan 1 punt in linestrinfg
+  //   // TODO: PAS sequences.js aan, alleen maar meer dan 1 punt in linestrinfg
 
-    var distances = lineStrings
-      .map((lineString) => turf.length(lineString, units))
+  //   var distances = lineStrings
+  //     .map((lineString) => turf.length(lineString, units))
 
-    var accDistances = distances
-      .reduce((a, x, i) => [...a, x + (a[i-1] || 0)], [])
+  //   var accDistances = distances
+  //     .reduce((a, x, i) => [...a, x + (a[i-1] || 0)], [])
 
-    var distance = distances.reduce(function (acc, val) {
-      return acc + val
-    }, 0)
+  //   var distance = distances.reduce(function (acc, val) {
+  //     return acc + val
+  //   }, 0)
 
-    var point = getPoint([52.367, 4.915])
+  //   var point = getPoint([52.367, 4.915])
 
-    function animate () {
-      var currentDistance = distance / steps * counter
+  //   function animate () {
+  //     var currentDistance = distance / steps * counter
 
-      var lineStringIndex = 0
-      while (accDistances[lineStringIndex] < currentDistance) {
-        lineStringIndex += 1
-      }
+  //     var lineStringIndex = 0
+  //     while (accDistances[lineStringIndex] < currentDistance) {
+  //       lineStringIndex += 1
+  //     }
 
-      var lineString = lineStrings[lineStringIndex]
-      var distanceBefore = lineStringIndex > 0 ? accDistances[lineStringIndex - 1] : 0
+  //     var lineString = lineStrings[lineStringIndex]
+  //     var distanceBefore = lineStringIndex > 0 ? accDistances[lineStringIndex - 1] : 0
 
-      point.features[0].geometry.coordinates = turf.along(lineString, currentDistance - distanceBefore, units).geometry.coordinates
+  //     point.features[0].geometry.coordinates = turf.along(lineString, currentDistance - distanceBefore, units).geometry.coordinates
 
-      // point.features[0].properties.bearing = turf.bearing(
-      //   turf.point(feature.geometry.coordinates[0][counter >= steps ? counter - 1 : counter]),
-      //   turf.point(feature.geometry.coordinates[0][counter >= steps ? counter : counter + 1])
-      // )
+  //     // point.features[0].properties.bearing = turf.bearing(
+  //     //   turf.point(feature.geometry.coordinates[0][counter >= steps ? counter - 1 : counter]),
+  //     //   turf.point(feature.geometry.coordinates[0][counter >= steps ? counter : counter + 1])
+  //     // )
 
-      point.features[0].properties.bearing = 0
+  //     point.features[0].properties.bearing = 0
 
-      map.getSource('point').setData(point)
+  //     map.getSource('point').setData(point)
 
-      if (counter < steps) {
-        requestAnimationFrame(animate)
-      }
+  //     if (counter < steps) {
+  //       requestAnimationFrame(animate)
+  //     }
 
-      counter = counter + 1
-    }
+  //     counter = counter + 1
+  //   }
 
-    animate()
-  }
+  //   animate()
+  // }
 </script>
 </body>
 </html>
