@@ -5,6 +5,9 @@ const turf = require('@turf/turf')
 
 let totalLength = 0
 const dates = {}
+const sequences = []
+
+let i = 0
 
 const features = H(process.stdin)
   .split()
@@ -18,11 +21,18 @@ const features = H(process.stdin)
     dates[date] = true
 
     totalLength += length
+
+    sequences.push({
+      id: feature.id,
+      featureId: i++,
+      capturedAt: feature.properties.capturedAt[0]
+    })
   })
   .done(() => {
     const stats = {
       length: Math.round(totalLength),
-      days: Object.keys(dates).length
+      days: Object.keys(dates).length,
+      sequences
     }
 
     console.log(JSON.stringify(stats, null, 2))
