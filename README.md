@@ -1,4 +1,4 @@
-# Visualization panorama photo metadata
+# Data for Panorama Photo Visualization
 
 Data for https://amsterdam.github.io/panorama-visualization/.
 
